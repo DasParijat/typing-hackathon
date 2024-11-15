@@ -34,7 +34,6 @@ def main():
                 words.append(word.strip().lower())
 
     text_for_test = " ".join(random.sample(words, WORD_COUNT))
-    users_input = ""
     match_index = 0
     sys.stdout.write(text_for_test)
     sys.stdout.write("\033[H")  # ]
@@ -67,7 +66,6 @@ def main():
         logging.debug(f"Process ascii: `{char}`")
         char_to_match = text_for_test[match_index]
         match_index += 1
-        users_input += char
         logging.debug(
             f"Matching pressed to expected: `{char}` to `{char_to_match}` => {char == char_to_match}"
         )
