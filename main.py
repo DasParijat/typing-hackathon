@@ -5,6 +5,7 @@ import random
 import atexit
 import os
 import logging
+from datetime import datetime
 
 
 GREEN = "\033[32m"  # ]
@@ -26,12 +27,18 @@ def clear_screen(do_flush=True):
         sys.stdout.flush()
 
 
+def calculate_wpm(num_characters: int, seconds: float) -> float:
+    return (num_characters / 5) / (seconds / 60)
+
+
 class TypingTest:
     def __init__(self, word_bank: list[str], word_count: int = 10) -> None:
         self.word_bank = word_bank
         self.word_count: int = word_count
         self.match_index: int = 0
         self.text_for_test: str | None = None
+        self.start_time: datetime | None = None
+        self.text_for_user: str = ""
 
     def start_game(self):
         # setup game
@@ -44,6 +51,7 @@ class TypingTest:
         sys.stdout.flush()
 
         # game loop
+        is_first_character = True
         while self.match_index < len(self.text_for_test):
             byte = os.read(sys.stdin.fileno(), 1)
             char = chr(byte[0]).lower()
@@ -52,7 +60,12 @@ class TypingTest:
                 clear_screen()
                 print("C-c hit exiting program!")
                 return
+            if is_first_character:
+                self.start_time = datetime.now()
+                is_first_character = False
             self.handle_char(char)
+
+        self.end_game()
 
     def handle_char(self, char: str):
         assert self.text_for_test is not None
@@ -60,6 +73,7 @@ class TypingTest:
             logging.debug(
                 f"Processing backspace rewriting and moving cursor: `{self.text_for_test[self.match_index]}`"
             )
+            self.text_for_user = self.text_for_user[:-1]
             self.match_index = max(self.match_index - 1, 0)
             sys.stdout.write("\033[1D")  # ] move back 1 character
             sys.stdout.write(self.text_for_test[self.match_index])
@@ -76,6 +90,7 @@ class TypingTest:
         logging.debug(f"Process ascii: `{char}`")
         char_to_match = self.text_for_test[self.match_index]
         self.match_index += 1
+        self.text_for_user += char
         logging.debug(
             f"Matching pressed to expected: `{char}` to `{char_to_match}` => {char == char_to_match}"
         )
@@ -88,6 +103,25 @@ class TypingTest:
         # do to flush to but the input buffer to the stdout
         #    (would flush only on Enter)
         sys.stdout.flush()
+
+    def end_game(self):
+        assert self.start_time is not None
+        assert self.text_for_test is not None
+        difference = datetime.now() - self.start_time
+        num_of_chars = 0
+        num_of_correct_chars = 0
+        for user_char, test_char in zip(self.text_for_user, self.text_for_test):
+            if test_char == " ":
+                continue
+            num_of_chars += 1
+            if user_char == test_char:
+                num_of_correct_chars += 1
+        adjusted_wpm = calculate_wpm(num_of_correct_chars, difference.total_seconds())
+        raw_wpm = calculate_wpm(num_of_chars, difference.total_seconds())
+        clear_screen(False)
+        sys.stdout.write(
+            f"Finished the test in {difference.total_seconds():.2f} seconds at {adjusted_wpm:.2f} adjusted wpm and {raw_wpm:.2f} raw wpm"
+        )
 
 
 def main():
