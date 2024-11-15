@@ -20,6 +20,7 @@ def to_color(text: str, color: str) -> str:
 
 
 def clear_screen(do_flush=True):
+    """Clears the screen and optionally does a screen refresh"""
     sys.stdout.write("\033[H\033[J")  # ]]
     if do_flush:
         sys.stdout.flush()
@@ -40,13 +41,14 @@ def main():
     sys.stdout.flush()
     while match_index < len(text_for_test):
         byte = os.read(sys.stdin.fileno(), 1)
+        char = chr(byte[0]).lower()
         logging.debug(f"Pressed byte: `{byte}`")
         # special character handling
-        if byte == b"\x03":  # Ctrl+C to exit
+        if char == "\x03":  # Ctrl+C to exit
             clear_screen()
             print("C-c hit exiting program!")
             return
-        elif byte == b"\x7f":  # Backspace
+        elif char == "\x7f":  # Backspace
             logging.debug(
                 f"Processing space rewriting and moving cursor: `{text_for_test[match_index]}`"
             )
@@ -56,36 +58,28 @@ def main():
             sys.stdout.write("\033[1D")  # ]
             sys.stdout.flush()
             continue
-
         # regular character handling
-        try:
-            # Convert byte to ASCII
-            ascii_char = chr(byte[0]).lower()
-            if not ascii_char.isalnum() and (not ascii_char == " "):
-                logging.debug(
-                    f"Processed non ascii chracter (skipping): `{ascii_char}`"
-                )
-                continue
-
-            logging.debug(f"Process ascii: `{ascii_char}`")
-            char_to_match = text_for_test[match_index]
-            match_index += 1
-            users_input += ascii_char
-            logging.debug(
-                f"Matching pressed to expected: `{ascii_char}` to `{char_to_match}` => {ascii_char == char_to_match}"
-            )
-            if char_to_match == ascii_char:
-                sys.stdout.write(to_color(GREEN, ascii_char))
-            else:
-                sys.stdout.write(
-                    to_color(RED, char_to_match if char_to_match != " " else "-")
-                )
-            # do to flush to but the input buffer to the stdout
-            #    (would flush only on Enter)
-            sys.stdout.flush()
-        except ValueError:
-            # invalid character so skipping
+        # Convert byte to ASCII
+        if not char.isalnum() and (not char == " "):
+            logging.debug(f"Processed non ascii chracter (skipping): `{char}`")
             continue
+
+        logging.debug(f"Process ascii: `{char}`")
+        char_to_match = text_for_test[match_index]
+        match_index += 1
+        users_input += char
+        logging.debug(
+            f"Matching pressed to expected: `{char}` to `{char_to_match}` => {char == char_to_match}"
+        )
+        if char_to_match == char:
+            sys.stdout.write(to_color(GREEN, char))
+        else:
+            sys.stdout.write(
+                to_color(RED, char_to_match if char_to_match != " " else "-")
+            )
+        # do to flush to but the input buffer to the stdout
+        #    (would flush only on Enter)
+        sys.stdout.flush()
 
 
 if __name__ == "__main__":
