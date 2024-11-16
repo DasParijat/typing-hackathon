@@ -1,5 +1,7 @@
 import random
 from datetime import datetime
+import time
+import sys
 
 
 GREEN = "\033[32m"  # ]
@@ -55,7 +57,25 @@ class TypingTest:
         print(f"Your raw wpm is {raw_wpm:.2f}")
 
     def do_replay(self):
-        pass
+        these_word_inputs = self.word_inputs.copy()
+        self.word_inputs = []
+        self.amount_correct_chars: int = 0
+        previous_time = self.start_time
+        for i, (user_word, finish_time) in enumerate(these_word_inputs):
+            words = self.test_words[
+                i : min(len(self.test_words), i + self.look_ahead + 1)
+            ]
+            print(" ".join(words))
+            difference = finish_time - previous_time
+            previous_time = finish_time
+            seconds_word_took = difference.total_seconds()
+            for char in user_word:
+                print(char, end="")
+                sys.stdout.flush()
+                time.sleep(seconds_word_took / len(user_word))
+            print()
+            self.process_word(self.test_words[i], user_word)
+            print()
 
     def process_word(self, match_word: str, user_word: str):
         self.word_inputs.append((user_word, datetime.now()))
@@ -77,9 +97,16 @@ def main():
         typing_test = TypingTest(random_words)
 
     user_input = None
-    while user_input != "q":
+    while user_input not in ["r", "q"]:
         typing_test.start_test()
-        user_input = input("Type `q` to quite and anything else to continue: ")
+        user_input = input(
+            "Type `q` to quite, `r` to replay, and anything else to continue: "
+        )
+
+    if user_input == "q":
+        pass
+    elif user_input == "r":
+        typing_test.do_replay()
 
     print("Goodbye !")
 
