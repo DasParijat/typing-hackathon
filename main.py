@@ -48,6 +48,7 @@ class TypingTest:
             ]
 
             print(f"{match_word} " + to_color(" ".join(words), DARK_GREY))
+
             user_word = input()
             self.process_word(match_word, user_word)
             print()
@@ -87,19 +88,23 @@ class TypingTest:
             
     def do_replay(self):
         """Replays previous game"""
+        # init replay values
         these_word_inputs = self.word_inputs.copy()
         self.word_inputs = []
         self.amount_correct_chars: int = 0
         previous_time = self.start_time
 
+        # bot replays user's prev test
         for i, (user_word, finish_time) in enumerate(these_word_inputs):
             words = self.test_words[
                 i : min(len(self.test_words), i + self.look_ahead + 1)
             ]
-            print(" ".join(words))
+            print(to_color(" ".join(words), DARK_GREY))
+
             difference = finish_time - previous_time
             previous_time = finish_time
             seconds_word_took = difference.total_seconds()
+            
             for char in user_word:
                 print(char, end="")
                 sys.stdout.flush()
