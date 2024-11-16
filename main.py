@@ -14,7 +14,7 @@ def to_color(text: str, color: str) -> str:
     return f"{color}{text}\033[0m"  # ]
 
 def set_test(sample_size):
-    """Reads a word bank file fo typing tst"""
+    """Reads a word bank file for typing test object"""
     with open("word_bank.txt") as file:
         random_words = random.sample(file.readlines(), int(sample_size))
         typing_test = TypingTest(random_words)
@@ -64,10 +64,12 @@ class TypingTest:
         print(f"Your raw wpm is {raw_wpm:.2f}")
 
     def do_replay(self):
+        """Replays previous game"""
         these_word_inputs = self.word_inputs.copy()
         self.word_inputs = []
         self.amount_correct_chars: int = 0
         previous_time = self.start_time
+
         for i, (user_word, finish_time) in enumerate(these_word_inputs):
             words = self.test_words[
                 i : min(len(self.test_words), i + self.look_ahead + 1)
@@ -85,6 +87,7 @@ class TypingTest:
             print()
 
     def process_word(self, match_word: str, user_word: str):
+        """Determines correctness of input, and records input for replay"""
         self.word_inputs.append((user_word, datetime.now()))
 
         match_word = match_word + "#" * (len(user_word) - len(match_word))
@@ -103,24 +106,30 @@ class TypingTest:
 def main():
     sample_size = START_SAMPLE_SIZE
     typing_test = set_test(sample_size)
+    tests_played = 0 
     user_input = None
 
     while user_input not in ["q"]:
         user_input = input(
-            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play"
+            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play\n"
         ).lower()
 
         match (user_input):
             case "r":
-                typing_test.do_replay()
+                if tests_played >= 1:
+                    typing_test.do_replay()
+                else:
+                    print("ERROR: Can't replay because no previous tests with current sample recorded")
             case "c":
                 typing_test = set_test(sample_size)
+                tests_played = 0
                 print("Sample of words changed!")
             case "s":
                 sample_size = input("New sample size: ")
                 print("Sample size changed!\nType 'c' to restart sample to desired size")
             case _:
                 typing_test.start_test()
+                tests_played += 1
 
 
     print("Goodbye !")
