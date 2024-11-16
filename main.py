@@ -6,7 +6,7 @@ import sys
 
 GREEN = "\033[32m"  # ]
 RED = "\033[31m"  # ]
-
+START_SAMPLE_SIZE = 5
 
 def to_color(text: str, color: str) -> str:
     """Wraps text in a color and resets it after"""
@@ -93,23 +93,32 @@ class TypingTest:
             else:
                 print(to_color(matching_char, RED), end="")
 
+def set_randsample(sample_size):
+    with open("word_bank.txt") as file:
+        random_words = random.sample(file.readlines(), sample_size)
+        typing_test = TypingTest(random_words)
+    return typing_test
 
 def main():
-    with open("word_bank.txt") as file:
-        random_words = random.sample(file.readlines(), 5)
-        typing_test = TypingTest(random_words)
-
+    sample_size = START_SAMPLE_SIZE
+    typing_test = set_randsample(sample_size)
     user_input = None
+
     while user_input not in ["q"]:
-        # make typing test more flexible
         user_input = input(
-            "\nType 'q' to quit \nType 'r' to replay\nPress [ENTER] to play\n"
+            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play\nPress [ENTER] to play\n"
         ).lower()
 
         match (user_input):
             case "r":
                 typing_test.do_replay()
-            case _: 
+            case "c":
+                typing_test = set_randsample(int(sample_size))
+                print("Sample of words changed!")
+            case "s":
+                sample_size = input("New sample size: ")
+                print("Sample size changed!\nType 'c' to restart sample to desired size")
+            case _:
                 typing_test.start_test()
 
 
