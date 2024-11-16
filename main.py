@@ -79,11 +79,14 @@ class TypingTest:
 
     def process_word(self, match_word: str, user_word: str):
         self.word_inputs.append((user_word, datetime.now()))
+
         match_word = match_word + "#" * (len(user_word) - len(match_word))
         user_word = user_word + "#" * (len(match_word) - len(user_word))
+        
         for i in range(len(user_word)):
             user_char = user_word[i]
             matching_char = match_word[i]
+        
             if user_char == matching_char:
                 self.amount_correct_chars += 1
                 print(to_color(matching_char, GREEN), end="")
