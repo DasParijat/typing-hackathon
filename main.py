@@ -101,13 +101,18 @@ def main():
 
     user_input = None
     while user_input not in ["q"]:
-        typing_test.start_test()
+        # make typing test more flexible
+        
+        match (user_input):
+            case "r":
+               typing_test.do_replay()
+            case _: 
+                input("Press ENTER if you're ready! ")
+                typing_test.start_test()
+
         user_input = input(
             "Type `q` to quite, `r` to replay, and anything else to continue: "
         )
-
-        if user_input == "r":
-            typing_test.do_replay()
 
 
     print("Goodbye !")
