@@ -5,6 +5,7 @@ import random
 import atexit
 import os
 import logging
+import time
 from datetime import datetime
 
 
@@ -51,18 +52,39 @@ class TypingTest:
         self.start_time: datetime | None = None
         self.text_for_user: str = ""
         self.max_adjusted_wpm: float = 0
+        self.key_presses: list[tuple[str, datetime]] = []
 
     def start_session(self):
         while True:
             self.start_game()
-            print("Press 1 for new game 2 to end")
+            print("Press 1 for new game, 2 to replay,and 3 to end")
             sys.stdout.write("\r")
             char = None
-            while char not in ["1", "2"]:
+            while char not in ["1", "2", "3"]:
                 char = get_char()
             if char == "2":
+                self.replay_game()
+            if char == "3":
                 print("Goodbye!")
                 break
+
+    def replay_game(self):
+        assert self.text_for_test is not None
+        self.match_index = 0
+        self.text_for_user = ""
+        clear_screen(False)
+        sys.stdout.write(self.text_for_test)
+        sys.stdout.write("\033[H")  # ]
+        sys.stdout.flush()
+        logging.debug(self.key_presses)
+        self.handle_char(self.key_presses[0][0])
+        for i in range(len(self.key_presses) - 1):
+            _, time1 = self.key_presses[i]
+            char2, time2 = self.key_presses[i + 1]
+            difference = time2 - time1
+            time.sleep(difference.total_seconds())
+            self.handle_char(char2)
+        time.sleep(0.2)
 
     def start_game(self):
         clear_screen(False)
@@ -70,6 +92,7 @@ class TypingTest:
         self.match_index = 0
         self.text_for_user = ""
         self.text_for_test = " ".join(random.sample(self.word_bank, self.word_count))
+        self.key_presses = []
 
         # print words to write
         sys.stdout.write(self.text_for_test)
@@ -80,9 +103,11 @@ class TypingTest:
         is_first_character = True
         while self.match_index < len(self.text_for_test):
             char = get_char()
+            current_time = datetime.now()
             if is_first_character:
-                self.start_time = datetime.now()
+                self.start_time = current_time
                 is_first_character = False
+            self.key_presses.append((char, current_time))
             self.handle_char(char)
 
         self.end_game()
