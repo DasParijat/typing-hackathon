@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 import sys
 
-
+# colors
 GREEN = "\033[32m"  # ]
 RED = "\033[31m"  # ]
 DARK_GREY = "\033[90m"  # ]
@@ -65,7 +65,7 @@ class TypingTest:
             difference.total_seconds() / 60
         )
 
-        print(f"Your adjusted raw wpm is {adjusted_wpm:.2f}")
+        print(f"\nYour adjusted raw wpm is {adjusted_wpm:.2f}")
         print(f"Your raw wpm is {raw_wpm:.2f}")
 
     def process_word(self, match_word: str, user_word: str):
@@ -84,7 +84,6 @@ class TypingTest:
                 print(to_color(matching_char, GREEN), end="")
             else:
                 print(to_color(matching_char, RED), end="")
-
             
     def do_replay(self):
         """Replays previous game"""
@@ -104,7 +103,7 @@ class TypingTest:
             difference = finish_time - previous_time
             previous_time = finish_time
             seconds_word_took = difference.total_seconds()
-            
+
             for char in user_word:
                 print(char, end="")
                 sys.stdout.flush()
@@ -117,12 +116,18 @@ def main():
     sample_size = START_SAMPLE_SIZE
     typing_test = set_test(sample_size)
     tests_played = 0 
+    guide_visible = True
     user_input = None
 
     while user_input not in ["q"]:
-        user_input = input(
-            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play\n"
-        ).lower()
+        if guide_visible:
+            user_input = input(
+                f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay previous game\n'h' to hide full guide\n'' to play\n"
+            ).lower()
+        else:
+            user_input = input(
+                f"\nType:\n'h' to show full guide\n'' to play\n"
+            ).lower()
 
         match (user_input):
             case "r":
@@ -137,6 +142,8 @@ def main():
             case "s":
                 sample_size = input("New sample size: ")
                 print("Sample size changed!\nType 'c' to restart sample to desired size")
+            case "h":
+                guide_visible = not guide_visible
             case _:
                 typing_test.start_test()
                 tests_played += 1
