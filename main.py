@@ -130,7 +130,7 @@ def main():
         for word in word_file.readlines():
             if len(word) >= WORD_LEN_MIN and len(word) <= WORD_LEN_MAX:
                 words.append(word.strip().lower())
-    typing_test = TypingTest(words)
+    typing_test = TypingTest(words, 10)
     typing_test.start_game()
 
 
