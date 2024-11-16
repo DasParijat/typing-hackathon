@@ -19,18 +19,19 @@ def set_test(sample_size):
     """Reads a word bank file for typing test object"""
     with open("word_bank.txt") as file:
         random_words = random.sample(file.readlines(), int(sample_size))
-        typing_test = TypingTest(random_words)
+        typing_test = TypingTest(random_words, int(sample_size))
     return typing_test
 
 
 class TypingTest:
-    def __init__(self, words: list[str], look_ahead=2) -> None:
+    def __init__(self, words: list[str], sample_size, look_ahead=2) -> None:
         self.words: list[str] = words
         self.look_ahead: int = look_ahead
+        self.sample_size : int = sample_size
 
     def start_test(self):
         """init variables for test"""
-        random_words = random.sample(self.words, 5)
+        random_words = random.sample(self.words, self.sample_size)
         self.test_words: list[str] = list(map(str.strip, random_words))
         self.amount_correct_chars: int = 0
         self.start_time: datetime = datetime.now()
@@ -50,7 +51,11 @@ class TypingTest:
             print(f"{match_word} " + to_color(" ".join(words), DARK_GREY))
 
             user_word = input()
-            self.process_word(match_word, user_word)
+            if user_word == "-q":
+                print(">>QUIT<<")
+                break
+            else:
+                self.process_word(match_word, user_word)
             print()
 
     def end_test(self):
