@@ -99,8 +99,8 @@ if __name__ == "__main__":
         subprocess.run("Get-Content -Path C:\example.txt -Raw")
     else:
         old_settings = termios.tcgetattr(sys.stdin)  # pyright: ignore
-    # set the program to raw mode io
-    tty.setraw(sys.stdin)
+        # set the program to raw mode io
+        tty.setraw(sys.stdin)
     try:
         clear_screen()
         main()
