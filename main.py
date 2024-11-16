@@ -6,6 +6,8 @@ import sys
 
 GREEN = "\033[32m"  # ]
 RED = "\033[31m"  # ]
+DARK_GREY = "\033[90m"  # ]
+
 START_SAMPLE_SIZE = 5
 
 def to_color(text: str, color: str) -> str:
@@ -45,7 +47,7 @@ class TypingTest:
                 i + 1 : min(len(self.test_words), i + self.look_ahead + 1)
             ]
 
-            print(f">>{match_word}<< " + " ".join(words))
+            print(f"{match_word} " + to_color(" ".join(words), DARK_GREY))
             user_word = input()
             self.process_word(match_word, user_word)
             print()
