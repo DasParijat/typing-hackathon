@@ -1,8 +1,15 @@
-import termios
+import os
+
+use_powershell = False
+try:
+    import termios
+except:
+    use_powershell = True
+
+import subprocess
 import tty
 import sys
 import random
-import os
 import logging
 
 
@@ -88,7 +95,10 @@ if __name__ == "__main__":
         # format="%(asctime)s - %(levelname)s - %(message)s", -- example other fields
         format="%(message)s",
     )
-    old_settings = termios.tcgetattr(sys.stdin)
+    if use_powershell:
+        subprocess.run("Get-Content -Path C:\example.txt -Raw")
+    else:
+        old_settings = termios.tcgetattr(sys.stdin)  # pyright: ignore
     # set the program to raw mode io
     tty.setraw(sys.stdin)
     try:
@@ -96,4 +106,7 @@ if __name__ == "__main__":
         main()
     finally:
         # ensure if there a bug in the program to still reset the stdin
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        if use_powershell:
+            subprocess.run("Get-Content -Path C:\example.txt")
+        else:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)  # pyright: ignore
