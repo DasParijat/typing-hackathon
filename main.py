@@ -13,6 +13,13 @@ def to_color(text: str, color: str) -> str:
     # return text + color = "\033[0m" # ]
     return f"{color}{text}\033[0m"  # ]
 
+def set_test(sample_size):
+    """Reads a word bank file fo typing tst"""
+    with open("word_bank.txt") as file:
+        random_words = random.sample(file.readlines(), int(sample_size))
+        typing_test = TypingTest(random_words)
+    return typing_test
+
 
 class TypingTest:
     def __init__(self, words: list[str], look_ahead=2) -> None:
@@ -93,27 +100,21 @@ class TypingTest:
             else:
                 print(to_color(matching_char, RED), end="")
 
-def set_randsample(sample_size):
-    with open("word_bank.txt") as file:
-        random_words = random.sample(file.readlines(), sample_size)
-        typing_test = TypingTest(random_words)
-    return typing_test
-
 def main():
     sample_size = START_SAMPLE_SIZE
-    typing_test = set_randsample(sample_size)
+    typing_test = set_test(sample_size)
     user_input = None
 
     while user_input not in ["q"]:
         user_input = input(
-            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play\nPress [ENTER] to play\n"
+            f"\nType:\n'q' to quit\n'c' to change sample of words\n's' to change size of sample (currently {sample_size})\n'r' to replay\n'' to play"
         ).lower()
 
         match (user_input):
             case "r":
                 typing_test.do_replay()
             case "c":
-                typing_test = set_randsample(int(sample_size))
+                typing_test = set_test(sample_size)
                 print("Sample of words changed!")
             case "s":
                 sample_size = input("New sample size: ")
