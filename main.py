@@ -2,6 +2,7 @@ import random
 
 GREEN = "\033[32m"  # ]
 RED = "\033[31m"  # ]
+LOOK_AHEAD = 2
 
 
 def to_color(text: str, color: str) -> str:
@@ -15,9 +16,15 @@ with open("word_bank.txt") as file:
     stripped_random_words = []
     for random_word in random_words:
         stripped_random_words.append(random_word.strip())
-    for word in stripped_random_words:
-        print(word)
+    for i in range(len(stripped_random_words)):
+        word = stripped_random_words[i]
+        words = stripped_random_words[
+            i : min(len(stripped_random_words), i + LOOK_AHEAD + 1)
+        ]
+        print(" ".join(words))
         user_word = input()
+        word = word + "#" * (len(user_word) - len(word))
+        user_word = user_word + "#" * (len(word) - len(user_word))
         for i in range(len(user_word)):
             user_char = user_word[i]
             matching_char = word[i]
