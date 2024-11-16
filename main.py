@@ -31,6 +31,17 @@ def calculate_wpm(num_characters: int, seconds: float) -> float:
     return (num_characters / 5) / (seconds / 60)
 
 
+def get_char() -> str:
+    byte = os.read(sys.stdin.fileno(), 1)
+    logging.debug(f"Pressed byte: `{byte}`")
+    char = chr(byte[0]).lower()
+    if char == "\x03":  # Ctrl+C to exit
+        clear_screen()
+        print("C-c hit exiting program!")
+        sys.exit(0)
+    return char
+
+
 class TypingTest:
     def __init__(self, word_bank: list[str], word_count: int = 10) -> None:
         self.word_bank = word_bank
@@ -39,10 +50,25 @@ class TypingTest:
         self.text_for_test: str | None = None
         self.start_time: datetime | None = None
         self.text_for_user: str = ""
+        self.max_adjusted_wpm: float = 0
+
+    def start_session(self):
+        while True:
+            self.start_game()
+            print("Press 1 for new game 2 to end")
+            sys.stdout.write("\r")
+            char = None
+            while char not in ["1", "2"]:
+                char = get_char()
+            if char == "2":
+                print("Goodbye!")
+                break
 
     def start_game(self):
+        clear_screen(False)
         # setup game
         self.match_index = 0
+        self.text_for_user = ""
         self.text_for_test = " ".join(random.sample(self.word_bank, self.word_count))
 
         # print words to write
@@ -53,13 +79,7 @@ class TypingTest:
         # game loop
         is_first_character = True
         while self.match_index < len(self.text_for_test):
-            byte = os.read(sys.stdin.fileno(), 1)
-            char = chr(byte[0]).lower()
-            logging.debug(f"Pressed byte: `{byte}`")
-            if char == "\x03":  # Ctrl+C to exit
-                clear_screen()
-                print("C-c hit exiting program!")
-                return
+            char = get_char()
             if is_first_character:
                 self.start_time = datetime.now()
                 is_first_character = False
@@ -117,11 +137,14 @@ class TypingTest:
             if user_char == test_char:
                 num_of_correct_chars += 1
         adjusted_wpm = calculate_wpm(num_of_correct_chars, difference.total_seconds())
+        self.max_adjusted_wpm = max(adjusted_wpm, self.max_adjusted_wpm)
         raw_wpm = calculate_wpm(num_of_chars, difference.total_seconds())
         clear_screen(False)
         sys.stdout.write(
-            f"Finished the test in {difference.total_seconds():.2f} seconds at {adjusted_wpm:.2f} adjusted wpm and {raw_wpm:.2f} raw wpm"
+            f"Finished the test in {difference.total_seconds():.2f} seconds at {adjusted_wpm:.2f} adjusted wpm and {raw_wpm:.2f} raw wpm\n\r"
+            + f"Best adjusted wpm this session: {self.max_adjusted_wpm:.2f}\n\r"
         )
+        sys.stdout.flush()
 
 
 def main():
@@ -131,7 +154,7 @@ def main():
             if len(word) >= WORD_LEN_MIN and len(word) <= WORD_LEN_MAX:
                 words.append(word.strip().lower())
     typing_test = TypingTest(words, 10)
-    typing_test.start_game()
+    typing_test.start_session()
 
 
 if __name__ == "__main__":
@@ -149,5 +172,4 @@ if __name__ == "__main__":
         lambda: termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
     )
 
-    clear_screen()
     main()
